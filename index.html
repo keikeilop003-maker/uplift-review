@@ -697,33 +697,29 @@ const adverbData = [
 ];
 
 // ─── 接続助詞「ながら」 ───
-// isMain: true → 正解として出題する用法
-// isMain: false → 誤答の選択肢としてのみ使う
 const nagaraData = [
   {
     usage: "二つの動作の並行",
     translation: "～ながら／ままで",
-    isMain: true,
     hint: "動詞に接続し、同時に二つの動作が並行して行われることを表す",
     example: "からうじてまちつけて、よろこびながら加持せさするに"
   },
   {
     usage: "逆接の確定条件",
     translation: "～が／～ものの",
-    isMain: true,
     hint: "動詞・形容詞・形容動詞に接続し、前後が逆接の関係になることを表す",
     example: "身はいやしながら、母なむ宮なりける"
   },
   {
-    usage: "名詞・副詞接続（そのままで）",
+    usage: "名詞接続（そのままで）",
     translation: "～のままで",
-    isMain: false,
+    hint: "名詞に接続し、その状態が変わらずに続くことを表す",
     example: "旅の御姿ながらおはしたり"
   },
   {
-    usage: "名詞・副詞接続（全部）",
+    usage: "副詞接続（全部・すっかり）",
     translation: "全部・すっかり",
-    isMain: false,
+    hint: "副詞「さ」などに接続し、残らず全部という意味を表す",
     example: "さながら捨つべきなり"
   }
 ];
@@ -838,16 +834,15 @@ function buildNagaraQuestions() {
   // 4つの訳し方すべてを選択肢プールとして使う
   const allTranslations = nagaraData.map(n => n.translation);
 
-  // 名詞・副詞接続の解説（すべての問題の解説末尾に付加）
-  const nameAdverbNote =
-    `<br><br><strong>【名詞・副詞接続のパターン（誤答の選択肢）】</strong>`
-    + `<br>・<em>名詞</em>に接続 → 「～のままで」の意`
-    + `<br>　例：旅の御姿<u class="word-ul">ながら</u>おはしたり`
-    + `<br>・<em>副詞（さ）</em>に接続 → 「全部・すっかり」の意`
-    + `<br>　例：さ<u class="word-ul">ながら</u>捨つべきなり`;
+  // 4用法まとめ（解説末尾に付加）
+  const allUsageNote =
+    `<br><br><strong>【「ながら」4つの用法まとめ】</strong>`
+    + `<br>①動詞接続：～ながら／ままで（並行）`
+    + `<br>②動詞・形容詞・形容動詞接続：～が／～ものの（逆接）`
+    + `<br>③名詞接続：～のままで`
+    + `<br>④副詞（さ）接続：全部・すっかり`;
 
-  // isMain: true の用法のみ出題（並行・逆接）
-  nagaraData.filter(n => n.isMain).forEach(n => {
+  nagaraData.forEach(n => {
     const correct = n.translation;
     const wrong   = allTranslations.filter(t => t !== correct);
     const exampleUL = underline(n.example, ["ながら"]);
@@ -860,7 +855,7 @@ function buildNagaraQuestions() {
       choices: shuffle([correct, ...wrong]),
       correctSet: new Set([correct]),
       correct,
-      explain: `<strong>【${n.usage}】　${n.translation}</strong><br>ポイント：${n.hint}<br><br>例：${exampleUL}${nameAdverbNote}`
+      explain: `<strong>【${n.usage}】　${n.translation}</strong><br>ポイント：${n.hint}<br><br>例：${exampleUL}${allUsageNote}`
     });
   });
   return qs;
