@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>無名草子 古文演習</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "BIZ UDGothic", "Yu Gothic Medium", "Meiryo", sans-serif;
+      background: #f5f0e8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      color: #333;
+      font-size: 15px;
+    }
+
+    /* ========== SCREENS ========== */
+    .screen { display: none; width: 100%; max-width: 540px; }
+    .screen.active { display: block; }
+
+    /* ========== TITLE SCREEN ========== */
+    .title-header {
+      text-align: center;
+      margin-top: 24px;
+      margin-bottom: 32px;
+    }
+    .title-label {
+      font-size: 0.78rem;
+      color: #888;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .title-main {
+      font-size: 1.7rem;
+      font-weight: bold;
+      color: #4a2e0a;
+      letter-spacing: 0.12em;
+      margin-bottom: 4px;
+    }
+    .title-sub {
+      font-size: 0.85rem;
+      color: #7a5c3a;
+      letter-spacing: 0.06em;
+    }
+    .title-passage {
+      background: #fff;
+      border-left: 4px solid #c8a96e;
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 28px;
+      font-size: 0.88rem;
+      line-height: 2;
+      color: #444;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .title-passage .passage-label {
+      font-size: 0.75rem;
+      color: #999;
+      margin-bottom: 8px;
+      letter-spacing: 0.06em;
+    }
+    .category-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .cat-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      cursor: pointer;
+      transition: transform 0.13s, box-shadow 0.13s, border-color 0.13s;
+      text-align: left;
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: #333;
+    }
+    .cat-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 16px rgba(0,0,0,0.10);
+      border-color: #c8a96e;
+    }
+    .cat-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+    .cat-icon.vocab  { background: #fff3e0; }
+    .cat-icon.adverb { background: #e8f4fd; }
+    .cat-icon.nagara { background: #e8fdf0; }
+    .cat-icon.saberi { background: #fdeaea; }
+    .cat-icon.all    { background: #f0e8fd; }
+    .cat-text { flex: 1; }
+    .cat-title { font-weight: bold; color: #3a2500; font-size: 0.97rem; }
+    .cat-desc  { font-size: 0.78rem; color: #888; margin-top: 2px; }
+    .cat-count { font-size: 0.78rem; color: #aaa; }
+
+    /* ========== QUIZ SCREEN ========== */
+    .quiz-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .quiz-back-btn {
+      background: none; border: none;
+      font-size: 0.85rem; color: #999; cursor: pointer;
+      padding: 4px 0; font-family: inherit;
+    }
+    .quiz-back-btn:hover { color: #555; }
+    .quiz-cat-label { font-size: 0.78rem; color: #aaa; letter-spacing: 0.06em; }
+    .progress-bar-wrap {
+      background: #e0d6c8; border-radius: 100px;
+      height: 7px; margin-bottom: 22px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #c8a96e, #e8c98e);
+      border-radius: 100px; transition: width 0.4s ease;
+    }
+    .question-card {
+      background: #fff; border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 24px 22px; margin-bottom: 18px;
+    }
+    .question-type-tag {
+      display: inline-block; font-size: 0.72rem;
+      padding: 3px 10px; border-radius: 100px;
+      margin-bottom: 12px; font-weight: bold; letter-spacing: 0.05em;
+    }
+    .tag-vocab  { background: #fff3e0; color: #b36a00; }
+    .tag-adverb { background: #e8f4fd; color: #1a6fa0; }
+    .tag-nagara { background: #e8fdf0; color: #1a7a4a; }
+    .tag-saberi { background: #fdeaea; color: #a02020; }
+    .question-num { font-size: 0.78rem; color: #bbb; margin-bottom: 6px; }
+    .question-text {
+      font-size: 1.05rem; line-height: 1.75;
+      color: #2a1a00; font-weight: bold;
+    }
+    /* 単語を大きく強調 */
+    .word-display {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #5a3200;
+      text-align: center;
+      margin: 14px 0 6px;
+      letter-spacing: 0.1em;
+    }
+    .multi-hint {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #b36a00;
+      background: #fff9f0;
+      border: 1px solid #f0d8a0;
+      border-radius: 6px;
+      padding: 5px 12px;
+      margin-top: 10px;
+      display: inline-block;
+    }
+    .question-example {
+      margin-top: 12px; padding: 10px 14px;
+      background: #fafaf6; border-left: 3px solid #c8a96e;
+      border-radius: 4px; font-size: 0.88rem; color: #555; line-height: 1.75;
+    }
+    .question-example .ex-label { font-size: 0.72rem; color: #bbb; margin-bottom: 4px; }
+    u.word-ul {
+      text-decoration-color: #c8903e;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 2px;
+      font-weight: bold;
+    }
+
+    /* 陳述の副詞：副詞＋呼応する語の2列表示 */
+    .adverb-pair {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      margin-top: 14px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid #d8cfc4;
+    }
+    .adverb-pair-cell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 10px;
+      background: #fff;
+      gap: 5px;
+    }
+    .adverb-pair-cell:first-child {
+      border-right: 1.5px solid #d8cfc4;
+    }
+    .adverb-pair-label {
+      font-size: 0.68rem;
+      color: #bbb;
+      letter-spacing: 0.08em;
+      font-weight: bold;
+    }
+    .adverb-pair-value {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: #3a2000;
+      letter-spacing: 0.05em;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .adverb-pair-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+      background: #f5f0e8;
+      color: #c8a96e;
+      font-size: 1rem;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .choices {
+      display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;
+    }
+
+    /* ── 通常選択肢（単一選択） ── */
+    .choice-btn {
+      padding: 14px 18px; border-radius: 10px;
+      border: 2px solid #e8ddd0; background: #fff;
+      cursor: pointer; text-align: left;
+      font-family: inherit; font-size: 0.93rem; color: #333; line-height: 1.6;
+      transition: border-color 0.12s, background 0.12s, transform 0.1s;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .choice-btn:hover:not(:disabled):not(.multi-mode) {
+      border-color: #c8a96e; transform: translateX(3px);
+    }
+    .choice-btn .choice-label {
+      min-width: 22px; height: 22px; border-radius: 50%;
+      background: #f0e8dc;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: bold; color: #a07040;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .choice-btn .choice-text { flex: 1; }
+
+    /* ── 複数選択モード ── */
+    .choice-btn.multi-mode { cursor: pointer; }
+    .choice-btn.multi-mode:hover:not(:disabled) {
+      border-color: #c8a96e; background: #fffbf5;
+    }
+    .choice-btn.multi-selected {
+      border-color: #c8a96e !important;
+      background: #fffbf0 !important;
+    }
+    .choice-btn.multi-selected .choice-label {
+      background: #c8a96e !important; color: #fff !important;
+    }
+
+    /* ── 回答後の色 ── */
+    .choice-btn.correct {
+      border-color: #3a9e5a !important; background: #edfaf2 !important;
+    }
+    .choice-btn.correct .choice-label { background: #3a9e5a !important; color: #fff !important; }
+    .choice-btn.wrong {
+      border-color: #e05555 !important; background: #fdeaea !important;
+    }
+    .choice-btn.wrong .choice-label { background: #e05555 !important; color: #fff !important; }
+    .choice-btn.missed {
+      border-color: #e8a000 !important; background: #fff8e8 !important;
+    }
+    .choice-btn.missed .choice-label { background: #e8a000 !important; color: #fff !important; }
+    .choice-btn.dimmed { opacity: 0.38; }
+    .choice-btn:disabled { cursor: default; }
+
+    /* 凡例（複数選択後に表示） */
+    .legend {
+      display: none;
+      gap: 14px; flex-wrap: wrap;
+      margin-bottom: 10px; font-size: 0.75rem; color: #777;
+    }
+    .legend.show { display: flex; }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .legend-dot.ok  { background: #3a9e5a; }
+    .legend-dot.ng  { background: #e05555; }
+    .legend-dot.miss{ background: #e8a000; }
+
+    /* 答え合わせボタン（複数選択用） */
+    .submit-answer-btn {
+      width: 100%; padding: 14px;
+      background: #fff; border: 2px solid #c8a96e;
+      border-radius: 12px; font-family: inherit;
+      font-size: 0.95rem; font-weight: bold; color: #7a4a00;
+      cursor: pointer; letter-spacing: 0.06em;
+      transition: background 0.13s, transform 0.1s;
+      margin-bottom: 10px;
+    }
+    .submit-answer-btn:hover { background: #fff8f0; transform: translateY(-1px); }
+    .submit-answer-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+    /* ========== FEEDBACK ========== */
+    .feedback-card {
+      background: #fff; border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 20px 22px; margin-bottom: 18px; display: none;
+    }
+    .feedback-card.show { display: block; }
+    .feedback-result { font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; }
+    .feedback-result.ok { color: #3a9e5a; }
+    .feedback-result.ng { color: #e05555; }
+    .feedback-explain {
+      font-size: 0.88rem; line-height: 1.85; color: #444;
+      border-top: 1px solid #f0e8dc; padding-top: 12px;
+    }
+    .feedback-explain strong { color: #7a4a00; }
+
+    .next-btn {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #c8a96e, #b8923e);
+      color: #fff; border: none; border-radius: 12px;
+      font-family: inherit; font-size: 1rem; font-weight: bold;
+      cursor: pointer; letter-spacing: 0.06em;
+      transition: opacity 0.15s, transform 0.1s;
+      box-shadow: 0 3px 10px rgba(184,146,62,0.35);
+    }
+    .next-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .next-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+    /* ========== RESULTS ========== */
+    .results-header { text-align: center; margin-top: 20px; margin-bottom: 28px; }
+    .results-title { font-size: 1.3rem; font-weight: bold; color: #4a2e0a; margin-bottom: 20px; }
+    .score-circle-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+    .score-circle {
+      width: 130px; height: 130px; border-radius: 50%;
+      background: linear-gradient(135deg, #f0e0c0, #e8c98e);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(200,169,110,0.35);
+    }
+    .score-num { font-size: 2.3rem; font-weight: bold; color: #4a2e0a; line-height: 1; }
+    .score-denom { font-size: 0.95rem; color: #a07040; }
+    .score-pct   { font-size: 0.82rem; color: #c8903e; margin-top: 3px; }
+    .score-comment { text-align: center; font-size: 0.93rem; color: #7a5c3a; margin-bottom: 24px; }
+    .results-actions { display: flex; flex-direction: column; gap: 10px; }
+    .action-btn {
+      width: 100%; padding: 15px; border-radius: 12px; border: 2px solid;
+      font-family: inherit; font-size: 0.95rem; font-weight: bold;
+      cursor: pointer; letter-spacing: 0.04em;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .action-btn.primary {
+      background: linear-gradient(135deg, #c8a96e, #b8923e);
+      border-color: transparent; color: #fff;
+      box-shadow: 0 3px 10px rgba(184,146,62,0.3);
+    }
+    .action-btn.secondary { background: #fff; border-color: #c8a96e; color: #7a4a00; }
+    .action-btn.tertiary  { background: #fff; border-color: #ddd; color: #888; }
+
+    /* ========== REVIEW ========== */
+    .review-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .review-back-btn {
+      background: none; border: none; font-size: 0.85rem;
+      color: #999; cursor: pointer; font-family: inherit;
+    }
+    .review-title { font-size: 1.1rem; font-weight: bold; color: #4a2e0a; }
+    .review-item {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      padding: 16px 18px; margin-bottom: 12px; border-left: 4px solid transparent;
+    }
+    .review-item.ok { border-left-color: #3a9e5a; }
+    .review-item.ng { border-left-color: #e05555; }
+    .review-item.ok .review-badge { background: #edfaf2; color: #3a9e5a; }
+    .review-item.ng .review-badge { background: #fdeaea; color: #e05555; }
+    .review-item-top {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 8px;
+    }
+    .review-qnum { font-size: 0.75rem; color: #bbb; }
+    .review-badge { font-size: 0.72rem; font-weight: bold; padding: 3px 10px; border-radius: 100px; }
+    .review-q { font-size: 0.88rem; font-weight: bold; color: #2a1a00; margin-bottom: 6px; line-height: 1.6; }
+    .review-answers { font-size: 0.82rem; color: #555; line-height: 1.8; }
+    .review-correct-ans { color: #3a9e5a; font-weight: bold; }
+    .review-user-ans   { color: #e05555; }
+    .review-explain { font-size: 0.80rem; color: #888; margin-top: 6px; line-height: 1.7; border-top: 1px solid #f5f0e8; padding-top: 6px; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     TITLE / CATEGORY SELECT
+     ============================================================ -->
+<div id="screen-title" class="screen active">
+  <div class="title-header">
+    <div class="title-label">古文演習 ／ 無名草子（大分大）</div>
+    <div class="title-main">無名草子</div>
+    <div class="title-sub">単語・文法 練習問題</div>
+  </div>
+
+  <div class="title-passage">
+    <div class="passage-label">本文（冒頭）</div>
+    この世にいかでかかることありけむと、めでたくおぼゆることは、文にこそ侍るなれ。……なほ、かばかりめでたきことはよも侍らじ。
+  </div>
+
+  <div class="category-list">
+    <button class="cat-btn" onclick="startQuiz('vocab')">
+      <div class="cat-icon vocab">📖</div>
+      <div class="cat-text">
+        <div class="cat-title">古文単語</div>
+        <div class="cat-desc">単語の意味を選ぶ（複数正解あり）</div>
+      </div>
+      <div class="cat-count">9語</div>
+    </button>
+    <button class="cat-btn" onclick="startQuiz('adverb')">
+      <div class="cat-icon adverb">📋</div>
+      <div class="cat-text">
+        <div class="cat-title">陳述の副詞</div>
+        <div class="cat-desc">副詞と呼応する語・意味</div>
+      </div>
+      <div class="cat-count">8副詞</div>
+    </button>
+    <button class="cat-btn" onclick="startQuiz('nagara')">
+      <div class="cat-icon nagara">🔗</div>
+      <div class="cat-text">
+        <div class="cat-title">接続助詞「ながら」</div>
+        <div class="cat-desc">用法の識別と訳し方</div>
+      </div>
+      <div class="cat-count">4用法</div>
+    </button>
+    <button class="cat-btn" onclick="startQuiz('saberi')">
+      <div class="cat-icon saberi">💬</div>
+      <div class="cat-text">
+        <div class="cat-title">「侍り」の用法</div>
+        <div class="cat-desc">本動詞 / 補助動詞の識別</div>
+      </div>
+      <div class="cat-count">3用法</div>
+    </button>
+    <button class="cat-btn" onclick="startQuiz('all')" style="border:2px dashed #c8a96e; background:#fffbf5;">
+      <div class="cat-icon all">🎯</div>
+      <div class="cat-text">
+        <div class="cat-title">総合演習</div>
+        <div class="cat-desc">全カテゴリからランダム出題</div>
+      </div>
+      <div class="cat-count">全問</div>
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     QUIZ SCREEN
+     ============================================================ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-topbar">
+    <button class="quiz-back-btn" onclick="goToTitle()">← 戻る</button>
+    <span class="quiz-cat-label" id="quiz-cat-label"></span>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+  </div>
+
+  <div class="question-card" id="question-card">
+    <div class="question-num" id="question-num">第 1 問 / 10 問</div>
+    <span class="question-type-tag" id="q-type-tag"></span>
+    <div class="question-text" id="question-text"></div>
+    <div class="question-example" id="question-example" style="display:none">
+      <div class="ex-label">本文・例文</div>
+      <div id="question-example-text"></div>
+    </div>
+    <div class="adverb-pair" id="adverb-pair" style="display:none">
+      <div class="adverb-pair-cell">
+        <span class="adverb-pair-label">副　詞</span>
+        <span class="adverb-pair-value" id="adverb-pair-adverb"></span>
+      </div>
+      <div class="adverb-pair-arrow">〜</div>
+      <div class="adverb-pair-cell">
+        <span class="adverb-pair-label">呼応する語</span>
+        <span class="adverb-pair-value" id="adverb-pair-corr"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend" id="legend">
+    <span class="legend-item"><span class="legend-dot ok"></span>正解の選択肢</span>
+    <span class="legend-item"><span class="legend-dot ng"></span>誤って選んだ</span>
+    <span class="legend-item"><span class="legend-dot miss"></span>選び忘れた正解</span>
+  </div>
+
+  <div class="choices" id="choices"></div>
+
+  <button class="submit-answer-btn" id="submit-btn" onclick="submitMultiAnswer()" style="display:none">答え合わせ</button>
+
+  <div class="feedback-card" id="feedback-card">
+    <div class="feedback-result" id="feedback-result"></div>
+    <div class="feedback-explain" id="feedback-explain"></div>
+  </div>
+
+  <button class="next-btn" id="next-btn" onclick="nextQuestion()" disabled>次の問題へ →</button>
+</div>
+
+<!-- ============================================================
+     RESULTS SCREEN
+     ============================================================ -->
+<div id="screen-results" class="screen">
+  <div class="results-header">
+    <div class="results-title">結果</div>
+    <div class="score-circle-wrap">
+      <div class="score-circle">
+        <div class="score-num" id="res-score">0</div>
+        <div class="score-denom" id="res-denom">/ 0 問</div>
+        <div class="score-pct" id="res-pct">0%</div>
+      </div>
+    </div>
+    <div class="score-comment" id="score-comment"></div>
+  </div>
+  <div class="results-actions">
+    <button class="action-btn primary" onclick="retryQuiz()">もう一度</button>
+    <button class="action-btn secondary" onclick="showReview()">問題を見直す</button>
+    <button class="action-btn tertiary" onclick="goToTitle()">カテゴリ選択へ</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     REVIEW SCREEN
+     ============================================================ -->
+<div id="screen-review" class="screen">
+  <div class="review-header">
+    <button class="review-back-btn" onclick="showResults()">← 結果に戻る</button>
+    <div class="review-title">見直し</div>
+  </div>
+  <div id="review-list"></div>
+</div>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+
+// ─── 古文単語（単語→意味の選択のみ） ───
+// correctMeanings: 正解の選択肢（すべて選ばなければならない）
+// distractors: 紛らわしい誤りの選択肢（出題中の9語の意味は使用しない）
+const vocabData = [
+  {
+    word: "いかで",
+    underlineTarget: ["いかでか", "いかで"],
+    correctMeanings: [
+      "どうして～か（疑問・反語）",
+      "何とかして（願望・意志）"
+    ],
+    distractors: [
+      "しみじみと感動する・趣がある",  // 「あはれなり」との混同
+      "気の毒だ・かわいそうだ"         // 「いとほし」との混同
+    ],
+    example: "この世にいかでかかることありけむと、めでたくおぼゆることは、文にこそ侍るなれ。",
+    explain: "「いかでか＋推量（らむ等）」→疑問・反語（どうして～か）。「いかで＋ばや・なむ・む等」→願望・意志（何とかして～したい）。文末の語で判別する。<br>※「あはれなり（しみじみ感動する）」「いとほし（気の毒だ）」は別語。"
+  },
+  {
+    word: "めでたし",
+    underlineTarget: ["めでたく", "めでたき"],
+    correctMeanings: [
+      "すばらしい・立派だ",
+      "めでたい・喜ばしい"
+    ],
+    distractors: [
+      "しみじみと感動する・趣がある",  // 「あはれなり」との混同
+      "かわいらしい・愛らしい"          // 「うつくし」との混同（「愛でる」語源からの誤解）
+    ],
+    example: "めでたくおぼゆることは、文にこそ侍るなれ。『枕草子』に返す返す申して侍るめれば、事新しく申すに及ばねど、なほいとめでたきものなり。",
+    explain: "「めでたし」は①すばらしい・立派だ　②めでたい・喜ばしい。「愛でる」を語源に持つが、「うつくし（かわいらしい）」「あはれなり（しみじみ感動する）」とは別語。"
+  },
+  {
+    word: "なかなか",
+    underlineTarget: ["なかなか"],
+    correctMeanings: [
+      "中途半端に（なまじ）",
+      "かえって・むしろ"
+    ],
+    distractors: [
+      "まったく～ない",           // 「さらに（打消）」との混同
+      "いい加減だ・おろそかだ"    // 「なほざりなり」との混同
+    ],
+    example: "なかなか、うち向ひては思ふほども続けやらぬ心の色も現はし、言はまほしきことをもこまごまと書きつくしたるを見る心は、",
+    explain: "「なかなか」は①なまじ・中途半端に　②かえって・むしろ。「さらに（まったく～ない）」「なほざりなり（いい加減だ）」とは別語。"
+  },
+  {
+    word: "めづらし",
+    underlineTarget: ["めづらしく"],
+    correctMeanings: [
+      "すばらしい・好ましい",
+      "新鮮だ・珍しい"
+    ],
+    distractors: [
+      "知的で趣がある・おもしろい",   // 「をかし」との混同
+      "かわいらしい・愛らしい"         // 「うつくし」との混同（「めづ＝愛でる」語源からの誤解）
+    ],
+    example: "言はまほしきことをもこまごまと書きつくしたるを見る心は、めづらしくうれしく、あひ向ひたるに劣りてやはある。",
+    explain: "「めづらし」は①すばらしい・好ましい　②珍しい・新鮮だ。「をかし（知的・趣がある）」「うつくし（かわいらしい）」とは別語。"
+  },
+  {
+    word: "つれづれなり",
+    underlineTarget: ["つれづれなる"],
+    correctMeanings: [
+      "所在なく手持ちぶさたなこと",
+      "一人寂しくもの思いに沈むこと"
+    ],
+    distractors: [
+      "物足りない・なんとなく寂しい",  // 「さうざうし」との混同
+      "気の毒だ・かわいそうだ"          // 「いとほし」との混同
+    ],
+    example: "つれづれなる折、昔の人の文見出でたるは、ただその折の心地して、いみじくうれしくこそおぼゆれ。",
+    explain: "「つれづれなり」は①所在なく手持ちぶさたなこと　②一人寂しくもの思いに沈むこと。「さうざうし（物足りない・なんとなく寂しい）」「いとほし（気の毒だ）」とは別語。"
+  },
+  {
+    word: "いみじ",
+    underlineTarget: ["いみじく"],
+    correctMeanings: [
+      "程度がはなはだしい・非常に",
+      "すばらしい・とてもうれしい",
+      "ひどい・恐ろしい"
+    ],
+    distractors: [
+      "不吉だ・縁起が悪い",        // 「ゆゆし」との混同
+      "恐れ多い・畏敬すべきだ"     // 「かしこし」との混同
+    ],
+    example: "昔の人の文見出でたるは、ただその折の心地して、いみじくうれしくこそおぼゆれ。まして亡き人などの書きたる物など見るは、いみじくあはれに、",
+    explain: "「いみじ」は程度が甚だしいことを表し、文脈によりプラス（②）にもマイナス（③）にもなる。「ゆゆし（不吉だ）」「かしこし（恐れ多い・賢い）」とは別語。"
+  },
+  {
+    word: "つゆ",
+    underlineTarget: ["つゆ"],
+    correctMeanings: [
+      "少しも～（ない）"
+    ],
+    distractors: [
+      "ほんの少し・わずかに",        // 「露＝微量」という現代語的誤解
+      "はっきりしない・気がかりだ",  // 「おぼつかなし」との混同
+      "やわらかく・静かに"            // 「やをら」との混同
+    ],
+    example: "たださし向ひたるほどの情けばかりにてこそ侍れ、これは、昔ながらつゆかはることなきも、めでたきことなり。",
+    explain: "「つゆ」は打消と呼応して「少しも～ない」。「露＝ほんの少し」という現代語感覚での誤解に注意。「おぼつかなし（気がかりだ）」「やをら（そっと・静かに）」とは別語。"
+  },
+  {
+    word: "旧事（ふること）",
+    underlineTarget: ["旧事"],
+    correctMeanings: [
+      "古い出来事"
+    ],
+    distractors: [
+      "遠い昔・いにしへの時代",    // 「いにしへ」との混同（事柄と時代の取り違え）
+      "古い言葉・昔の言い伝え",    // 「ふること」の意味の過剰拡大
+      "昔から変わらない慣わし"     // 現代語「旧事」の語感からの誤解
+    ],
+    example: "いみじかりける延喜・天暦の御時の旧事も、唐土・天竺の知らぬ世の事も、この文字と言ふものなからましかば、",
+    explain: "「旧事（ふること）」は「古い出来事・昔起きたこと」。「いにしへ（遠い昔という時代）」は時代を指す語。言い伝えや慣わしとは異なる。"
+  },
+  {
+    word: "なほ",
+    underlineTarget: ["なほ"],
+    correctMeanings: [
+      "依然として・相変わらず",
+      "それでもやはり",
+      "さらに・いっそう"
+    ],
+    distractors: [
+      "ついに・とうとう",      // 「つひに」との混同
+      "せめて・少なくとも"     // 「だに・すら」との混同
+    ],
+    example: "今の世の我等が片端もいかでか書き伝へまし、など思ふにも、なほ、かばかりめでたきことはよも侍らじ。",
+    explain: "「なほ」は①依然として・相変わらず　②それでもやはり　③さらに・いっそう。「つひに（ついに・とうとう）」「だに（せめて～だけでも）」とは別語。"
+  }
+];
+
+// ─── 陳述の副詞 ───
+const adverbData = [
+  { adverb: "いかで",                              func: "願望・意志",   corr: "ばや・なむ・む等（願望）",         meaning: "何とかして～したい・しよう" },
+  { adverb: "いかで・いかでか",                    func: "疑問・反語",   corr: "連体形・らむ等（推量）",           meaning: "どうして～のだろう（か）" },
+  { adverb: "ゆめ・ゆめゆめ",                      func: "禁止",         corr: "な・べからず",                    meaning: "決して～するな" },
+  { adverb: "な",                                  func: "禁止",         corr: "そ",                              meaning: "～するな・～してはいけない" },
+  { adverb: "よも",                                func: "打消推量",     corr: "じ・まじ",                        meaning: "まさか～ないだろう" },
+  { adverb: "をさをさ",                            func: "打消",         corr: "ず・じ・まじ・で・なし",          meaning: "ほとんど～ない" },
+  { adverb: "おほかた・つゆ・さらに・たえて・よに", func: "打消",         corr: "ず・じ・まじ・で・なし",          meaning: "まったく～ない" },
+  { adverb: "え",                                  func: "打消（不能）", corr: "ず・じ・まじ・で",                meaning: "～ことができない" }
+];
+
+// ─── 接続助詞「ながら」 ───
+// isMain: true → 正解として出題する用法
+// isMain: false → 誤答の選択肢としてのみ使う
+const nagaraData = [
+  {
+    usage: "二つの動作の並行",
+    translation: "～ながら／ままで",
+    isMain: true,
+    hint: "動詞に接続し、同時に二つの動作が並行して行われることを表す",
+    example: "からうじてまちつけて、よろこびながら加持せさするに"
+  },
+  {
+    usage: "逆接の確定条件",
+    translation: "～が／～ものの",
+    isMain: true,
+    hint: "動詞・形容詞・形容動詞に接続し、前後が逆接の関係になることを表す",
+    example: "身はいやしながら、母なむ宮なりける"
+  },
+  {
+    usage: "名詞・副詞接続（そのままで）",
+    translation: "～のままで",
+    isMain: false,
+    example: "旅の御姿ながらおはしたり"
+  },
+  {
+    usage: "名詞・副詞接続（全部）",
+    translation: "全部・すっかり",
+    isMain: false,
+    example: "さながら捨つべきなり"
+  }
+];
+
+// ─── 侍り ───
+// choiceLabel: 選択肢に表示するテキスト（用法名 ＋ 訳し方）
+const saberiData = [
+  {
+    usage: "本動詞（丁寧）",
+    meaning: "あります・おります・ございます",
+    choiceLabel: "本動詞（丁寧）―あります・おります・ございます",
+    hint: "「に侍り」「と侍り」など、単独で述語となる",
+    example: "これなむ、かの人の親に侍る",
+    exampleTrans: "これこそが、あの人の親でございます"
+  },
+  {
+    usage: "本動詞（謙譲）",
+    meaning: "お仕えする・伺候する",
+    choiceLabel: "本動詞（謙譲）―お仕えする・伺候する",
+    hint: "貴人のそばに仕えることを表し、独立した述語として使われる",
+    example: "宮に侍る女房",
+    exampleTrans: "宮にお仕え申し上げている女房"
+  },
+  {
+    usage: "補助動詞（丁寧）",
+    meaning: "～です・～ます・～でございます",
+    choiceLabel: "補助動詞（丁寧）―～です・～ます・～でございます",
+    hint: "他の動詞・形容詞の直下について丁寧さを添える",
+    example: "いとよろしう侍り",
+    exampleTrans: "たいそうよろしゅうございます"
+  }
+];
+
+/* ============================================================
+   QUESTION BUILDING
+   ============================================================ */
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// テキスト中の対象語に下線タグを付ける（最初に見つかった1箇所のみ）
+function underline(text, targets) {
+  if (!targets || !text) return text;
+  const list = Array.isArray(targets) ? targets : [targets];
+  for (const t of list) {
+    const idx = text.indexOf(t);
+    if (idx !== -1) {
+      return text.slice(0, idx)
+        + `<u class="word-ul">${t}</u>`
+        + text.slice(idx + t.length);
+    }
+  }
+  return text;
+}
+
+function buildVocabQuestions() {
+  return vocabData.map(v => {
+    const isMulti = v.correctMeanings.length > 1;
+    const choices = shuffle([...v.correctMeanings, ...v.distractors]);
+    const correctSet = new Set(v.correctMeanings);
+    const exampleUL = underline(v.example, v.underlineTarget);
+
+    return {
+      category: 'vocab',
+      typeLabel: '古文単語',
+      tagClass: 'tag-vocab',
+      isMultiSelect: isMulti,
+      question: isMulti
+        ? `「${v.word}」の意味を<u>すべて</u>選べ。`
+        : `「${v.word}」の意味として正しいものを選べ。`,
+      word: v.word,
+      example: exampleUL,
+      choices,
+      correctSet,
+      correct: v.correctMeanings.join('　／　'),
+      explain: `<strong>【${v.word}】</strong>　${v.correctMeanings.join('　')}<br><br>${v.explain}<br><br>例：${exampleUL}`
+    };
+  });
+}
+
+function buildAdverbQuestions() {
+  const qs = [];
+  adverbData.forEach((a, idx) => {
+    const others = adverbData.filter((_, i) => i !== idx);
+
+    // 副詞＋呼応する語 → 意味（4択）
+    const correct = a.meaning;
+    const wrong = shuffle(others.map(x => x.meaning)).slice(0, 3);
+    qs.push({
+      category: 'adverb', typeLabel: '陳述の副詞', tagClass: 'tag-adverb',
+      isMultiSelect: false,
+      question: `次の副詞と呼応する語の組み合わせの意味を選べ。`,
+      example: null,
+      adverbPair: { adverb: a.adverb, corr: a.corr },
+      choices: shuffle([correct, ...wrong]),
+      correctSet: new Set([correct]),
+      correct,
+      explain: `<strong>【${a.adverb}　〜　${a.corr}】</strong><br>・はたらき：${a.func}<br>・意味：${a.meaning}`
+    });
+  });
+  return qs;
+}
+
+function buildNagaraQuestions() {
+  const qs = [];
+  // 4つの訳し方すべてを選択肢プールとして使う
+  const allTranslations = nagaraData.map(n => n.translation);
+
+  // 名詞・副詞接続の解説（すべての問題の解説末尾に付加）
+  const nameAdverbNote =
+    `<br><br><strong>【名詞・副詞接続のパターン（誤答の選択肢）】</strong>`
+    + `<br>・<em>名詞</em>に接続 → 「～のままで」の意`
+    + `<br>　例：旅の御姿<u class="word-ul">ながら</u>おはしたり`
+    + `<br>・<em>副詞（さ）</em>に接続 → 「全部・すっかり」の意`
+    + `<br>　例：さ<u class="word-ul">ながら</u>捨つべきなり`;
+
+  // isMain: true の用法のみ出題（並行・逆接）
+  nagaraData.filter(n => n.isMain).forEach(n => {
+    const correct = n.translation;
+    const wrong   = allTranslations.filter(t => t !== correct);
+    const exampleUL = underline(n.example, ["ながら"]);
+
+    qs.push({
+      category: 'nagara', typeLabel: '接続助詞「ながら」', tagClass: 'tag-nagara',
+      isMultiSelect: false,
+      question: `次の「ながら」の訳し方を選べ。`,
+      example: exampleUL,
+      choices: shuffle([correct, ...wrong]),
+      correctSet: new Set([correct]),
+      correct,
+      explain: `<strong>【${n.usage}】　${n.translation}</strong><br>ポイント：${n.hint}<br><br>例：${exampleUL}${nameAdverbNote}`
+    });
+  });
+  return qs;
+}
+
+function buildSaberiQuestions() {
+  const qs = [];
+  // 選択肢は「用法名―訳し方」のセット（choiceLabel）
+  const allLabels = saberiData.map(s => s.choiceLabel);
+
+  saberiData.forEach(s => {
+    const correct   = s.choiceLabel;
+    const wrong     = allLabels.filter(l => l !== correct);
+    // 侍り/侍る/侍れ/侍ら のいずれかにアンダーライン
+    const exampleUL = underline(s.example, ["侍れ", "侍る", "侍り"]);
+
+    qs.push({
+      category: 'saberi', typeLabel: '侍り', tagClass: 'tag-saberi',
+      isMultiSelect: false,
+      question: `次の「侍り（侍る）」の用法を選べ。`,
+      example: exampleUL,
+      choices: shuffle([correct, ...wrong]),
+      correctSet: new Set([correct]),
+      correct,
+      explain: `<strong>【${s.usage}】</strong><br>訳し方：${s.meaning}<br>ポイント：${s.hint}<br><br>例：${exampleUL}　→　${s.exampleTrans}`
+    });
+  });
+  return qs;
+}
+
+/* ============================================================
+   QUIZ STATE
+   ============================================================ */
+
+let currentCategory = '';
+let allQuestions    = [];
+let currentIdx      = 0;
+let userAnswers     = [];
+let score           = 0;
+let answered        = false;
+let selectedChoices = new Set(); // 複数選択用
+
+const CHOICE_LABELS = ['ア', 'イ', 'ウ', 'エ', 'オ'];
+
+const CAT_LABEL_MAP = {
+  vocab: '古文単語', adverb: '陳述の副詞',
+  nagara: '接続助詞「ながら」', saberi: '侍り', all: '総合演習'
+};
+
+function startQuiz(cat) {
+  currentCategory = cat;
+  let pool = [];
+  if (cat === 'vocab'  || cat === 'all') pool = pool.concat(buildVocabQuestions());
+  if (cat === 'adverb' || cat === 'all') pool = pool.concat(buildAdverbQuestions());
+  if (cat === 'nagara' || cat === 'all') pool = pool.concat(buildNagaraQuestions());
+  if (cat === 'saberi' || cat === 'all') pool = pool.concat(buildSaberiQuestions());
+
+  // vocab は全9問固定、他はシャッフル＆上限
+  if (cat === 'vocab') {
+    allQuestions = pool; // 9問全部
+  } else if (cat === 'all') {
+    allQuestions = shuffle(pool).slice(0, 20);
+  } else {
+    allQuestions = shuffle(pool).slice(0, 12);
+  }
+
+  currentIdx  = 0;
+  userAnswers = [];
+  score       = 0;
+
+  showScreen('quiz');
+  document.getElementById('quiz-cat-label').textContent = CAT_LABEL_MAP[cat] || '';
+  renderQuestion();
+}
+
+function retryQuiz() { startQuiz(currentCategory); }
+
+/* ============================================================
+   RENDER QUESTION
+   ============================================================ */
+
+function renderQuestion() {
+  const q     = allQuestions[currentIdx];
+  const total = allQuestions.length;
+  answered        = false;
+  selectedChoices = new Set();
+
+  // Progress
+  document.getElementById('progress-bar').style.width = (currentIdx / total * 100) + '%';
+  document.getElementById('question-num').textContent = `第 ${currentIdx + 1} 問 / ${total} 問`;
+
+  // Tag
+  const tag = document.getElementById('q-type-tag');
+  tag.textContent = q.typeLabel;
+  tag.className   = 'question-type-tag ' + q.tagClass;
+
+  // Question text
+  document.getElementById('question-text').innerHTML = q.question
+    + (q.isMultiSelect ? `<br><span class="multi-hint">複数選択可（正解をすべて選んで「答え合わせ」）</span>` : '');
+
+  // Example（本文引用）
+  const exDiv = document.getElementById('question-example');
+  if (q.example) {
+    document.getElementById('question-example-text').innerHTML =
+      q.example + (q.exampleTrans ? `<br><span style="color:#999;font-size:0.85em;">${q.exampleTrans}</span>` : '');
+    exDiv.style.display = '';
+  } else {
+    exDiv.style.display = 'none';
+  }
+
+  // 陳述の副詞：副詞＋呼応する語の2列表示
+  const pairDiv = document.getElementById('adverb-pair');
+  if (q.adverbPair) {
+    document.getElementById('adverb-pair-adverb').textContent = q.adverbPair.adverb;
+    document.getElementById('adverb-pair-corr').textContent   = q.adverbPair.corr;
+    pairDiv.style.display = '';
+  } else {
+    pairDiv.style.display = 'none';
+  }
+
+  // Legend
+  document.getElementById('legend').classList.remove('show');
+
+  // Choices
+  const choicesDiv = document.getElementById('choices');
+  choicesDiv.innerHTML = '';
+  q.choices.forEach((c, i) => {
+    const btn = document.createElement('button');
+    if (q.isMultiSelect) {
+      btn.className = 'choice-btn multi-mode';
+      btn.onclick   = () => toggleMultiChoice(c, btn);
+    } else {
+      btn.className = 'choice-btn';
+      btn.onclick   = () => selectSingleAnswer(c, btn);
+    }
+    btn.innerHTML = `<span class="choice-label">${CHOICE_LABELS[i]}</span><span class="choice-text">${c}</span>`;
+    choicesDiv.appendChild(btn);
+  });
+
+  // submit button（複数選択時のみ表示）
+  const submitBtn = document.getElementById('submit-btn');
+  submitBtn.style.display = q.isMultiSelect ? '' : 'none';
+  submitBtn.disabled = true;
+
+  // Feedback reset
+  const fb = document.getElementById('feedback-card');
+  fb.classList.remove('show');
+
+  // Next button
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.disabled = true;
+  nextBtn.textContent = (currentIdx === allQuestions.length - 1) ? '結果を見る' : '次の問題へ →';
+}
+
+/* ============================================================
+   SINGLE SELECT
+   ============================================================ */
+
+function selectSingleAnswer(chosen, clickedBtn) {
+  if (answered) return;
+  answered = true;
+
+  const q         = allQuestions[currentIdx];
+  const isCorrect = q.correctSet.has(chosen);
+  if (isCorrect) score++;
+  userAnswers.push({ correct: isCorrect, chosen: [chosen], question: q });
+
+  const btns = document.querySelectorAll('#choices .choice-btn');
+  btns.forEach(btn => {
+    btn.disabled = true;
+    const txt = btn.querySelector('.choice-text').textContent;
+    if (q.correctSet.has(txt))      btn.classList.add('correct');
+    else if (txt === chosen)         btn.classList.add('wrong');
+    else                             btn.classList.add('dimmed');
+  });
+
+  showFeedback(isCorrect, q);
+  document.getElementById('next-btn').disabled = false;
+}
+
+/* ============================================================
+   MULTI SELECT
+   ============================================================ */
+
+function toggleMultiChoice(choice, btn) {
+  if (answered) return;
+  if (selectedChoices.has(choice)) {
+    selectedChoices.delete(choice);
+    btn.classList.remove('multi-selected');
+  } else {
+    selectedChoices.add(choice);
+    btn.classList.add('multi-selected');
+  }
+  // 1つ以上選んだら答え合わせボタンを有効化
+  document.getElementById('submit-btn').disabled = selectedChoices.size === 0;
+}
+
+function submitMultiAnswer() {
+  if (answered) return;
+  answered = true;
+
+  const q   = allQuestions[currentIdx];
+  const sel = selectedChoices; // Set of selected choices
+  const cor = q.correctSet;    // Set of correct choices
+
+  // 完全一致のみ正解
+  const isCorrect = [...cor].every(c => sel.has(c)) && [...sel].every(s => cor.has(s));
+  if (isCorrect) score++;
+  userAnswers.push({ correct: isCorrect, chosen: [...sel], question: q });
+
+  // 選択肢を色分け
+  const btns = document.querySelectorAll('#choices .choice-btn');
+  btns.forEach(btn => {
+    btn.disabled = true;
+    const txt = btn.querySelector('.choice-text').textContent;
+    const wasSelected = sel.has(txt);
+    const isCorrectChoice = cor.has(txt);
+
+    if (isCorrectChoice && wasSelected) {
+      btn.classList.remove('multi-selected');
+      btn.classList.add('correct');         // 正解かつ選んだ ✓
+    } else if (!isCorrectChoice && wasSelected) {
+      btn.classList.remove('multi-selected');
+      btn.classList.add('wrong');           // 誤答を選んだ ✗
+    } else if (isCorrectChoice && !wasSelected) {
+      btn.classList.add('missed');          // 選び忘れた正解 △
+    } else {
+      btn.classList.add('dimmed');          // 無関係
+    }
+  });
+
+  // 凡例表示（複数選択後のみ）
+  document.getElementById('legend').classList.add('show');
+  document.getElementById('submit-btn').style.display = 'none';
+
+  showFeedback(isCorrect, q);
+  document.getElementById('next-btn').disabled = false;
+}
+
+/* ============================================================
+   FEEDBACK
+   ============================================================ */
+
+function showFeedback(isCorrect, q) {
+  const fb  = document.getElementById('feedback-card');
+  const res = document.getElementById('feedback-result');
+  const exp = document.getElementById('feedback-explain');
+
+  if (isCorrect) {
+    res.textContent = '✓ 正解！';
+    res.className   = 'feedback-result ok';
+  } else {
+    res.innerHTML = `✗ 不正解　<span style="font-size:0.85rem;font-weight:normal;color:#888;">正解：${q.correct}</span>`;
+    res.className = 'feedback-result ng';
+  }
+  exp.innerHTML = q.explain;
+  fb.classList.add('show');
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+
+function nextQuestion() {
+  if (!answered) return;
+  currentIdx++;
+  if (currentIdx >= allQuestions.length) {
+    showResultsScreen();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResultsScreen() {
+  const total = allQuestions.length;
+  const pct   = Math.round((score / total) * 100);
+
+  document.getElementById('res-score').textContent = score;
+  document.getElementById('res-denom').textContent = `/ ${total} 問`;
+  document.getElementById('res-pct').textContent   = pct + '%';
+
+  const comment =
+    pct === 100 ? '満点です！すばらしい！' :
+    pct >= 80   ? 'よくできました！' :
+    pct >= 60   ? 'もう少しです。もう一度確認しましょう。' :
+    pct >= 40   ? '復習が必要です。見直しをしてみましょう。' :
+                  'まずは単語・文法の確認からはじめましょう。';
+  document.getElementById('score-comment').textContent = comment;
+  showScreen('results');
+}
+
+function showReview() {
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  userAnswers.forEach((a, i) => {
+    const q   = a.question;
+    const div = document.createElement('div');
+    div.className = 'review-item ' + (a.correct ? 'ok' : 'ng');
+
+    const chosenStr = a.chosen.join('　／　');
+    div.innerHTML = `
+      <div class="review-item-top">
+        <span class="review-qnum">第 ${i + 1} 問</span>
+        <span class="review-badge">${a.correct ? '○ 正解' : '✗ 不正解'}</span>
+      </div>
+      <div class="review-q">${q.question.replace(/<[^>]+>/g, '')}</div>
+      ${q.adverbPair
+        ? `<div style="display:flex;gap:0;border:1.5px solid #d8cfc4;border-radius:8px;overflow:hidden;margin-bottom:8px;font-size:0.80rem;">
+            <div style="flex:1;text-align:center;padding:6px 8px;background:#fff;border-right:1.5px solid #d8cfc4;">
+              <div style="color:#bbb;font-size:0.68rem;margin-bottom:2px;">副詞</div>
+              <div style="font-weight:bold;color:#3a2000;">${q.adverbPair.adverb}</div>
+            </div>
+            <div style="display:flex;align-items:center;padding:0 6px;background:#f5f0e8;color:#c8a96e;font-weight:bold;">〜</div>
+            <div style="flex:1;text-align:center;padding:6px 8px;background:#fff;">
+              <div style="color:#bbb;font-size:0.68rem;margin-bottom:2px;">呼応する語</div>
+              <div style="font-weight:bold;color:#3a2000;">${q.adverbPair.corr}</div>
+            </div>
+          </div>`
+        : q.example ? `<div style="font-size:0.80rem;color:#999;margin-bottom:6px;">例：${q.example}</div>` : ''
+      }
+      <div class="review-answers">
+        正解：<span class="review-correct-ans">${q.correct}</span>
+        ${!a.correct ? `<br>あなたの答え：<span class="review-user-ans">${chosenStr}</span>` : ''}
+      </div>
+      <div class="review-explain">${q.explain}</div>
+    `;
+    list.appendChild(div);
+  });
+  showScreen('review');
+}
+
+function showResults() { showScreen('results'); }
+function goToTitle()   { showScreen('title'); }
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
